@@ -47,29 +47,64 @@ function copyCBU(spanId) {
  * STATE
  *************************/
 let currentCurrency = 'ars';
+let currentSort = 'default';
 
 const giftList = document.querySelector(".gift-list");
 const sortSelect = document.getElementById("sort");
 const currencyButtons = document.querySelectorAll('.currency-btn');
 
-/* 🔑 cache maestro: TODOS los gifts */
+/* cache maestro */
 const allGiftItems = Array.from(document.querySelectorAll('.gift-item'));
+
+
+/*************************
+ * SORTING LOGIC
+ *************************/
+function applySort(items) {
+  if (currentSort === "asc") {
+    return items.sort((a, b) => a.dataset.price - b.dataset.price);
+  }
+  if (currentSort === "desc") {
+    return items.sort((a, b) => b.dataset.price - a.dataset.price);
+  }
+  return items;
+}
 
 
 /*************************
  * RENDER
  *************************/
-function renderGifts(sortedItems = null) {
+function renderGifts(animate = false) {
   giftList.innerHTML = "";
 
-  const itemsToRender = sortedItems
-    ? sortedItems
-    : allGiftItems.filter(i => i.dataset.currency === currentCurrency);
+  let visibleItems = allGiftItems
+    .filter(i => i.dataset.currency === currentCurrency);
 
-  itemsToRender.forEach(item => {
-    item.style.display = 'block';
-    giftList.appendChild(item);
-  });
+  visibleItems = applySort(visibleItems);
+
+  if (animate) {
+    visibleItems.forEach(item => item.classList.add("fade-out"));
+  }
+
+  setTimeout(() => {
+    giftList.innerHTML = "";
+
+    visibleItems.forEach(item => {
+      item.style.display = 'block';
+      giftList.appendChild(item);
+    });
+
+    if (animate) {
+      visibleItems.forEach(item => {
+        item.classList.remove("fade-out");
+        item.classList.add("fade-in");
+      });
+
+      setTimeout(() => {
+        visibleItems.forEach(i => i.classList.remove("fade-in"));
+      }, 300);
+    }
+  }, animate ? 300 : 0);
 }
 
 
@@ -78,7 +113,7 @@ function renderGifts(sortedItems = null) {
  *************************/
 function filterByCurrency(currency) {
   currentCurrency = currency;
-  renderGifts();
+  renderGifts(true);
 }
 
 currencyButtons.forEach(btn => {
@@ -91,38 +126,16 @@ currencyButtons.forEach(btn => {
 
 
 /*************************
- * SORTING
+ * SORT SELECT
  *************************/
 sortSelect.addEventListener("change", function () {
-  let visibleItems = allGiftItems
-    .filter(i => i.dataset.currency === currentCurrency);
-
-  if (this.value === "asc") {
-    visibleItems.sort((a, b) => a.dataset.price - b.dataset.price);
-  } else if (this.value === "desc") {
-    visibleItems.sort((a, b) => b.dataset.price - a.dataset.price);
-  }
-
-  /* animación */
-  visibleItems.forEach(item => item.classList.add("fade-out"));
-
-  setTimeout(() => {
-    renderGifts(visibleItems);
-
-    visibleItems.forEach(item => {
-      item.classList.remove("fade-out");
-      item.classList.add("fade-in");
-    });
-
-    setTimeout(() => {
-      visibleItems.forEach(i => i.classList.remove("fade-in"));
-    }, 300);
-
-  }, 300);
+  currentSort = this.value;
+  renderGifts(true);
 });
 
 
 /*************************
  * INITIAL LOAD
  *************************/
+sortSelect.value = currentSort;
 filterByCurrency(currentCurrency);
