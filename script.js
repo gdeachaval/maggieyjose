@@ -77,8 +77,8 @@ function applySort(items) {
 function renderGifts(animate = false) {
   giftList.innerHTML = "";
 
-  let visibleItems = allGiftItems
-    .filter(i => i.dataset.currency === currentCurrency);
+  let visibleItems = allGiftItems;
+    // .filter(i => i.dataset.currency === currentCurrency);
 
   visibleItems = applySort(visibleItems);
 
